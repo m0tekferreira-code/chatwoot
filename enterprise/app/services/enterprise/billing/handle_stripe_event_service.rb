@@ -54,7 +54,7 @@ class Enterprise::Billing::HandleStripeEventService
 
   def update_account_attributes(subscription, plan)
     # https://stripe.com/docs/api/subscriptions/object
-    account.update(
+    account.update!(
       custom_attributes: account.custom_attributes.merge(
         'stripe_customer_id' => subscription.customer,
         'stripe_price_id' => subscription['plan']['id'],
