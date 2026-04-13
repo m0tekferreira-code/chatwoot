@@ -488,7 +488,18 @@ setup_docker_compose() {
         return 1
     }
     
-    log_success "docker-compose.yml baixado"
+    # Corrigir: postgres precisa ler POSTGRES_PASSWORD do .env (não vazio hardcoded)
+    sed -i 's/- POSTGRES_PASSWORD=$/- POSTGRES_PASSWORD=${POSTGRES_PASSWORD}/' docker-compose.yml
+    sed -i 's/- POSTGRES_USER=postgres/- POSTGRES_USER=${POSTGRES_USER:-postgres}/' docker-compose.yml
+    sed -i 's/- POSTGRES_DB=chatwoot/- POSTGRES_DB=${POSTGRES_DB:-chatwoot}/' docker-compose.yml
+    
+    # Adicionar env_file no serviço postgres para carregar variáveis
+    sed -i '/image: pgvector\/pgvector:pg16/a\    env_file: .env' docker-compose.yml
+    
+    # Remover atributo version obsoleto
+    sed -i "/^version:/d" docker-compose.yml
+    
+    log_success "docker-compose.yml baixado e configurado"
 }
 
 ################################################################################
@@ -521,6 +532,7 @@ POSTGRES_USER=postgres
 POSTGRES_PASSWORD=$POSTGRES_PASSWORD
 
 # Redis
+REDIS_PASSWORD=$REDIS_PASSWORD
 REDIS_URL=redis://:$REDIS_PASSWORD@redis:6379
 
 # Rails
