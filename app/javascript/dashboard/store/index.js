@@ -12,6 +12,7 @@ import auth from './modules/auth';
 import automations from './modules/automations';
 import bulkActions from './modules/bulkActions';
 import campaigns from './modules/campaigns';
+import pipelines from './modules/pipelines';
 import cannedResponse from './modules/cannedResponse';
 import categories from './modules/helpCenterCategories';
 import contactConversations from './modules/contactConversations';
@@ -102,6 +103,7 @@ export default createStore({
     labels,
     macros,
     notifications,
+    pipelines,
     portals,
     reports,
     sla,

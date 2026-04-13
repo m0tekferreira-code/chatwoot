@@ -1,0 +1,43 @@
+{
+  "PIPELINE": {
+    "HEADER": "Pipelines",
+    "BOARD": {
+      "EMPTY": "No pipelines created yet. Create one to start organizing conversations.",
+      "EMPTY_STAGE": "No conversations in this stage",
+      "MOVE_ERROR": "Failed to move conversation. Please try again.",
+      "ADD_SUCCESS": "Conversation added to pipeline successfully.",
+      "ADD_ERROR": "Failed to add conversation to pipeline.",
+      "ADD_CONVERSATION": "Add Conversation",
+      "ADD": "Add",
+      "CONVERSATION_ID_PLACEHOLDER": "Conversation ID",
+      "LOADING": "Loading board data..."
+    },
+    "SETTINGS": {
+      "TITLE": "Pipeline Settings",
+      "TAB_PIPELINES": "Pipelines",
+      "TAB_STAGES": "Stages",
+      "PIPELINE_NAME_PLACEHOLDER": "Pipeline name",
+      "PIPELINE_DESC_PLACEHOLDER": "Description (optional)",
+      "CREATE_PIPELINE": "Create Pipeline",
+      "UPDATE_PIPELINE": "Update Pipeline",
+      "CANCEL": "Cancel",
+      "CLOSE": "Close",
+      "CONVERSATIONS": "conversations",
+      "STAGE_NAME_PLACEHOLDER": "Stage name",
+      "CREATE_STAGE": "Create Stage",
+      "UPDATE_STAGE": "Update Stage",
+      "PIPELINE_CREATED": "Pipeline created successfully.",
+      "PIPELINE_CREATE_ERROR": "Failed to create pipeline.",
+      "PIPELINE_UPDATED": "Pipeline updated successfully.",
+      "PIPELINE_UPDATE_ERROR": "Failed to update pipeline.",
+      "PIPELINE_DELETED": "Pipeline deleted successfully.",
+      "PIPELINE_DELETE_ERROR": "Failed to delete pipeline.",
+      "STAGE_CREATED": "Stage created successfully.",
+      "STAGE_CREATE_ERROR": "Failed to create stage.",
+      "STAGE_UPDATED": "Stage updated successfully.",
+      "STAGE_UPDATE_ERROR": "Failed to update stage.",
+      "STAGE_DELETED": "Stage deleted successfully.",
+      "STAGE_DELETE_ERROR": "Failed to delete stage."
+    }
+  }
+}

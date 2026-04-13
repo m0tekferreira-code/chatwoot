@@ -123,6 +123,12 @@ Rails.application.routes.draw do
             end
           end
           resources :campaigns, only: [:index, :create, :show, :update, :destroy]
+          resources :pipelines, only: [:index, :create, :show, :update, :destroy] do
+            scope module: :pipelines do
+              resources :stages, only: [:index, :create, :update, :destroy]
+              resources :conversations, only: [:index, :create, :update, :destroy]
+            end
+          end
           resources :dashboard_apps, only: [:index, :show, :create, :update, :destroy]
           namespace :channels do
             resource :twilio_channel, only: [:create]

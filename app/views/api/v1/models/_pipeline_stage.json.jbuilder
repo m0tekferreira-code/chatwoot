@@ -1,0 +1,11 @@
+json.id resource.id
+json.name resource.name
+json.color resource.color
+json.description resource.description
+json.position resource.position
+json.stage_type resource.stage_type
+json.settings resource.settings
+json.pipeline_id resource.pipeline_id
+json.conversations_count resource.conversation_pipeline_stages.count
+json.created_at resource.created_at
+json.updated_at resource.updated_at

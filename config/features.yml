@@ -241,3 +241,6 @@
   display_name: Advanced Assignment
   enabled: false
   premium: true
+- name: pipelines
+  display_name: Pipelines
+  enabled: true

@@ -450,6 +450,13 @@ const menuItems = computed(() => {
       ],
     },
     {
+      name: 'Pipelines',
+      label: t('SIDEBAR.PIPELINES'),
+      icon: 'i-lucide-kanban',
+      to: accountScopedRoute('pipelines_dashboard'),
+      activeOn: ['pipelines_dashboard', 'pipeline_board'],
+    },
+    {
       name: 'Companies',
       label: t('SIDEBAR.COMPANIES'),
       icon: 'i-lucide-building-2',
