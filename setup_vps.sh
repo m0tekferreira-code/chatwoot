@@ -482,11 +482,22 @@ setup_docker_compose() {
         sleep 2
     fi
     
-    # Baixar docker-compose.production.yaml
-    curl -fsSL https://raw.githubusercontent.com/chatwoot/chatwoot/master/docker-compose.production.yaml -o docker-compose.yml || {
-        log_error "Falha ao baixar docker-compose.yml"
-        return 1
-    }
+    # Clonar o repositório customizado (contém pipelines e outras features)
+    if [ -d "$CHATWOOT_DIR/src/.git" ]; then
+        log_info "Repositório já clonado, atualizando..."
+        cd "$CHATWOOT_DIR/src"
+        git fetch origin && git reset --hard origin/main
+    else
+        log_info "Clonando repositório customizado..."
+        rm -rf "$CHATWOOT_DIR/src"
+        git clone https://github.com/m0tekferreira-code/chatwoot.git "$CHATWOOT_DIR/src" || {
+            log_error "Falha ao clonar repositório"
+            return 1
+        }
+    fi
+    
+    # Copiar docker-compose.production.yaml como docker-compose.yml
+    cp "$CHATWOOT_DIR/src/docker-compose.production.yaml" "$CHATWOOT_DIR/docker-compose.yml"
     
     # Corrigir: postgres precisa ler POSTGRES_PASSWORD do .env (não vazio hardcoded)
     sed -i 's/- POSTGRES_PASSWORD=$/- POSTGRES_PASSWORD=${POSTGRES_PASSWORD}/' docker-compose.yml
@@ -496,10 +507,21 @@ setup_docker_compose() {
     # Adicionar env_file no serviço postgres para carregar variáveis
     sed -i '/image: pgvector\/pgvector:pg16/a\    env_file: .env' docker-compose.yml
     
+    # Ajustar build context para apontar ao diretório do código-fonte
+    sed -i 's|context: \.|context: ./src|' docker-compose.yml
+    
     # Remover atributo version obsoleto
     sed -i "/^version:/d" docker-compose.yml
     
-    log_success "docker-compose.yml baixado e configurado"
+    # Build da imagem customizada
+    log_info "Construindo imagem Docker customizada (pode levar alguns minutos)..."
+    cd "$CHATWOOT_DIR"
+    docker compose build --no-cache || {
+        log_error "Falha ao construir imagem Docker"
+        return 1
+    }
+    
+    log_success "docker-compose.yml configurado e imagem construída"
 }
 
 ################################################################################
