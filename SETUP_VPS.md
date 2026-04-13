@@ -17,10 +17,69 @@ Script automático para instalar e configurar o Chatwoot completo em uma VPS.
 
 - **VPS com Ubuntu** 20.04, 22.04 ou 24.04
 - **Acesso root** ou usuário com permissão sudo
-- **Domínio** apontando para o IP da VPS
+- **Domínio ou Subdomínio** apontando para o IP da VPS (veja abaixo)
 - **Porta 80 e 443** abertas no firewall
 - **Mínimo 2GB RAM** (recomendado 4GB+)
 - **10GB espaço livre em disco** (recomendado 20GB+)
+
+## 🌐 Configuração de Domínio/Subdomínio
+
+### O que o script aceita?
+
+O script foi construído para aceitar **qualquer tipo de domínio ou subdomínio**:
+
+| Tipo | Exemplo | Funciona? |
+|------|---------|-----------|
+| Domínio raiz | `example.com` | ✅ Sim |
+| Subdomínio simples | `chat.example.com` | ✅ Sim |
+| Outro subdomínio | `support.example.com` | ✅ Sim |
+| Subdomínios aninhados | `api.chat.example.com` | ✅ Sim |
+| Múltiplos subdomínios | `chat.api.suporte.example.com` | ✅ Sim |
+| Localhost | `localhost` | ⚠️ Sem SSL (teste local) |
+| Endereço IP | `192.168.1.1` | ❌ Não (sem domínio) |
+
+### Como configurar no seu registrador?
+
+1. Acesse o painel de controle do seu registrador (GoDaddy, Namecheap, etc)
+2. Procure por **DNS** ou **Registros DNS**
+3. Adicione um registro **A** apontando para o IP da sua VPS:
+
+```
+Nome:     chat.example.com    (ou seu-subdominio.seu-dominio.com)
+Tipo:     A (Address)
+Valor:    123.45.67.89        (IP da sua VPS)
+TTL:      3600                (padrão)
+```
+
+4. Aguarde a propagação (pode levar até 48 horas, mas geralmente é instantâneo)
+
+5. Teste a configuração:
+
+```bash
+# No seu computador
+nslookup chat.example.com
+
+# Deve retornar algo como:
+# Name:   chat.example.com
+# Address: 123.45.67.89
+```
+
+### Dica: Usar um subdomínio é mais seguro! 🔒
+
+Recomendações:
+
+```
+❌ Não use:  example.com (domínio raiz)
+✅ Use:      chat.example.com (subdomínio específico)
+```
+
+**Por quê?** Usar subdomínios oferece:
+- Isolamento melhor da infraestrutura do seu site principal
+- Facilita migração/mudança de servidores
+- Melhor controle de SSL
+- Mais flexibilidade para múltiplas aplicações
+
+> 📖 **Para configuração detalhada de domínios e subdomínios, veja:** [DOMAIN_SETUP.md](./DOMAIN_SETUP.md)
 
 ## 🔧 Como usar
 
@@ -56,15 +115,48 @@ sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/seu-user/seu-fork/m
 
 ## ❓ O que o script vai perguntar
 
-Durante a execução, você será solicitado a informar:
+Durante a execução, o script fará as seguintes perguntas de forma interativa:
 
-1. **Domínio**: `chat.example.com` (seu domínio já deve apontar para a VPS)
-2. **Email**: Email para certificado Let's Encrypt
-3. **Email Admin**: Email do administrador do Chatwoot
-4. **Nome Admin**: Nome do administrador
-5. **Senha Admin**: Senha para login no Chatwoot
+### 1. **URL/Domínio** (Obrigatório)
+```
+Exemplos válidos:
+  chat.example.com          ✅ Subdomínio simples
+  support.example.com       ✅ Outro subdomínio
+  api.chat.example.com      ✅ Subdomínios aninhados
+  example.com               ✅ Domínio raiz (se preferir)
+```
+**Nota:** Deve estar apontado no DNS para o IP da sua VPS
 
-> As senhas de banco de dados e Redis são geradas automaticamente de forma segura.
+### 2. **Email para Certificado SSL** (Obrigatório)
+```
+admin@example.com
+```
+Usar um email real para receber notificações sobre renovação do certificado
+
+### 3. **Email do Administrador** (Obrigatório)
+```
+seu-email@example.com
+```
+Este é o email que você usará para fazer login no Chatwoot
+
+### 4. **Nome do Administrador** (Obrigatório)
+```
+João Silva
+```
+Seu nome ou nome da sua empresa
+
+### 5. **Senha do Administrador** (Obrigatório)
+```
+Mín. 6 caracteres, não será exibida enquanto digita
+```
+
+### Senhas Geradas Automaticamente
+O script **gera automaticamente** senhas seguras para:
+- PostgreSQL: 32 caracteres aleatórios
+- Redis: 32 caracteres aleatórios
+- Rails Secret: 32 caracteres aleatórios
+
+Você **não precisa** defini-las, ficam salvas em `.env`
 
 ## ⏱️ Tempo de Instalação
 
@@ -73,24 +165,48 @@ Durante a execução, você será solicitado a informar:
 - Inicialização dos serviços: ~2-3 minutos
 - **Total**: ~15-20 minutos
 
-## ✅ Validação Pós-Instalação
+## ✅ Resumo Após Instalação Bem-Sucedida
 
-Após a conclusão, você verá um resumo com:
+O script exibirá um resumo como este:
 
-- ✓ URL de acesso: `https://seu-dominio.com`
-- ✓ Credenciais de login
-- ✓ Diretório de instalação: `/opt/chatwoot`
-- ✓ Comandos úteis
+```
+═══════════════════════════════════════════════════
+✓ Chatwoot instalado com sucesso!
+═══════════════════════════════════════════════════
 
-## 📝 Variáveis de Ambiente (.env)
+🌐 ACESSAR A APLICAÇÃO
+───────────────────────────────────────────────────
+  URL: https://chat.example.com
+
+👤 CREDENCIAIS DE LOGIN
+───────────────────────────────────────────────────
+  Email: seu-email@example.com
+  Nome:  João Silva
+  Senha: (a que você definiu)
+
+📁 LOCALIZAÇÃO DOS ARQUIVOS
+───────────────────────────────────────────────────
+  Aplicação:  /opt/chatwoot
+  Config:     /opt/chatwoot/.env
+  Nginx:      /etc/nginx/sites-available/chatwoot
+  Backups:    /opt/chatwoot/backups/
+
+⚙️  CERTIFICADO SSL
+───────────────────────────────────────────────────
+  Domínio:   chat.example.com
+  Email:     admin@example.com
+  Status:    ✓ Ativo (renovação automática)
+```
+
+## 📝 Arquivo `.env`
 
 O script gera automaticamente um arquivo `.env` em `/opt/chatwoot/.env` com:
 
-- Configurações de banco de dados PostgreSQL
-- Configurações de Redis
-- Chave secreta Rails
-- URL da aplicação
-- Email do administrador
+- ✅ Configurações de banco de dados PostgreSQL
+- ✅ Configurações de Redis
+- ✅ Chave secreta Rails
+- ✅ URL da aplicação (seu domínio)
+- ✅ Email do administrador
 - **Opcional**: Configurações de SMTP, S3, Sentry, etc.
 
 Para editar: `nano /opt/chatwoot/.env`

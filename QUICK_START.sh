@@ -3,12 +3,30 @@
 # 🚀 CHATWOOT VPS DEPLOYMENT - QUICK START
 
 # ═══════════════════════════════════════════════════════════════════════════
+# 0. PREPARAÇÃO: Apontar domínio/subdomínio para a VPS
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Escolha uma opção:
+#
+# ✅ Subdomínio (RECOMENDADO):
+#    chat.example.com           → Apontar para IP da VPS
+#    support.example.com        → Apontar para IP da VPS
+#    api.chat.example.com       → Apontar para IP da VPS
+#
+# ✅ Domínio raiz:
+#    example.com                → Apontar para IP da VPS
+#
+# Testar propagação:
+#    nslookup seu-dominio.com
+
+# ═══════════════════════════════════════════════════════════════════════════
 # 1. PRIMEIRA INSTALAÇÃO (Linux/macOS)
 # ═══════════════════════════════════════════════════════════════════════════
 
 # Opção A: Upload com deploy helper
 chmod +x deploy.sh
 bash deploy.sh
+# → Vai pedir: domínio, ​email SSL, email admin, nome admin, senha admin
 
 # Opção B: Direct via SSH  
 ssh root@seu-servidor.com 'bash -s' < setup_vps.sh

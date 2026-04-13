@@ -82,11 +82,11 @@ Após executar o script, ele vai pedir:
 
 | Pergunta | Exemplo | Notas |
 |----------|---------|-------|
-| **Domínio** | chat.example.com | Deve estar apontando para a VPS |
-| **Email SSL** | seu-email@example.com | Para renovação do certificado |
-| **Email Admin** | admin@example.com | Usar para login |
+| **URL/Domínio** | chat.example.com, suporte.example.com, subdomain.domain.com | Pode ser domínio principal ou subdomínio(s). Deve estar apontando para a VPS |
+| **Email SSL** | seu-email@example.com | Para renovação automática do certificado |
+| **Email Admin** | admin@example.com | Email para fazer login no Chatwoot |
 | **Nome Admin** | João Silva | Seu nome ou nome da empresa |
-| **Senha Admin** | Segura123!@# | Digite com cuidado |
+| **Senha Admin** | Segura123!@# | Digite com cuidado (mínimo 6 caracteres) |
 
 > As senhas de PostgreSQL e Redis são geradas automaticamente com 32 caracteres.
 
@@ -145,7 +145,23 @@ O script implementa automaticamente:
 - 🔐 **Permissões Restritas**: Arquivo .env protegido
 - 📦 **Limite de uploads**: 100MB máximo
 
-## 📞 Próximos Passos Após Instalação
+## 🎯 Próximos Passos Após Instalação
+
+### ✨ Exemplos de URLs Suportadas
+
+O script suporta qualquer variação de domínio/subdomínio:
+
+```
+✓ example.com              (domínio simples)
+✓ chat.example.com         (subdomínio simples)
+✓ support.example.com      (outro subdomínio)
+✓ api.chat.example.com     (subdomínio múltiplo)
+✓ deep.support.sub.example.com (subdomínios aninhados)
+
+✗ localhost (sem SSL, apenas para teste local)
+✗ 192.168.1.1 (endereço IP sem domínio)
+✗ exemplo.com.br (deve estar apontado no DNS)
+```
 
 ### 1. Configure Canais de Comunicação
 
@@ -414,6 +430,7 @@ Para informações avançadas:
 | Tópico | Arquivo |
 |--------|---------|
 | Instalação passo-a-passo | [SETUP_VPS.md](./SETUP_VPS.md) |
+| **Configuração de Domínio/Subdomínio** | **[DOMAIN_SETUP.md](./DOMAIN_SETUP.md)** ⭐ |
 | Configurações avançadas | [ADVANCED_CONFIG.md](./ADVANCED_CONFIG.md) |
 | Referência rápida | [QUICK_START.sh](./QUICK_START.sh) |
 
