@@ -810,8 +810,8 @@ main() {
     setup_directories
     setup_docker_compose
     create_env_file
-    setup_nginx
     setup_ssl
+    setup_nginx
     setup_ssl_renewal
     create_backup_script
     create_update_script
