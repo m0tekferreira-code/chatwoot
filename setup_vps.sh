@@ -26,6 +26,7 @@ DOMAIN=""
 POSTGRES_PASSWORD=""
 REDIS_PASSWORD=""
 SECRET_KEY_BASE=""
+INSTALLATION_MODE="NEW"  # NEW, UPDATE, ou REPAIR
 
 ################################################################################
 # Funções Auxiliares
@@ -45,6 +46,30 @@ log_error() {
 
 log_warning() {
     echo -e "${YELLOW}[!]${NC} $1"
+}
+
+# Contador de passos
+STEP_CURRENT=0
+STEP_TOTAL=14
+
+run_step() {
+    local step_name="$1"
+    local step_func="$2"
+    STEP_CURRENT=$((STEP_CURRENT + 1))
+
+    # Mostrar progresso inline
+    printf "\r  ${BLUE}[%2d/%d]${NC} %-45s" "$STEP_CURRENT" "$STEP_TOTAL" "$step_name..."
+
+    # Executar função suprimindo output para arquivo de log
+    local step_log="$CHATWOOT_DIR/logs/step_${STEP_CURRENT}.log"
+    mkdir -p "$CHATWOOT_DIR/logs" 2>/dev/null
+    if $step_func >> "$step_log" 2>&1; then
+        printf "\r  ${GREEN}[✓]${NC} %-45s\n" "$step_name"
+    else
+        printf "\r  ${RED}[✗]${NC} %-45s\n" "$step_name"
+        echo -e "      ${RED}Ver detalhes: $step_log${NC}"
+        exit 1
+    fi
 }
 
 check_root() {
@@ -88,6 +113,133 @@ read_input() {
     fi
     
     eval "$variable='$input'"
+}
+
+################################################################################
+# Detecção de Instalação Anterior
+################################################################################
+
+detect_existing_installation() {
+    if [ -d "$CHATWOOT_DIR" ] && [ -f "$CHATWOOT_DIR/.env" ]; then
+        return 0  # Instalação existe
+    fi
+    return 1  # Não existe
+}
+
+cleanup_previous_installation() {
+    log_warning "Detectada instalação anterior. Limpando configurações antigas..."
+    
+    # Parar containers
+    if [ -d "$CHATWOOT_DIR" ]; then
+        cd "$CHATWOOT_DIR"
+        docker compose down 2>/dev/null || true
+    fi
+    
+    # Fazer backup automático
+    if [ -f "/usr/local/bin/backup-chatwoot.sh" ]; then
+        log_info "Fazendo backup automático..."
+        /usr/local/bin/backup-chatwoot.sh || log_warning "Backup falhou, continuando mesmo assim"
+    fi
+    
+    # Limpar Nginx config antigo
+    log_info "Limpando configurações antigas de Nginx..."
+    [ -f "/etc/nginx/sites-enabled/chatwoot" ] && sudo rm -f /etc/nginx/sites-enabled/chatwoot
+    [ -f "$NGINX_CONF" ] && sudo rm -f "$NGINX_CONF"
+    
+    # Limpar cron jobs antigos (apenas os do Chatwoot)
+    log_info "Limpando cron jobs antigos..."
+    (crontab -l 2>/dev/null | grep -v "chatwoot\|renewal" | crontab - 2>/dev/null) || true
+    
+    # Remover .env antigo para recriação
+    [ -f "$CHATWOOT_DIR/.env" ] && rm -f "$CHATWOOT_DIR/.env"
+    
+    log_success "Limpeza concluída"
+}
+
+handle_existing_installation() {
+    echo ""
+    echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${YELLOW}⚠️  INSTALAÇÃO ANTERIOR DETECTADA${NC}"
+    echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
+    echo "Opções:"
+    echo "  1) ATUALIZAR - Limpar config antiga e reinstalar (RECOMENDADO)"
+    echo "  2) REPAIR - Apenas corrigir problemas mantendo dados"
+    echo "  3) CANCELAR - Sair sem fazer nada"
+    echo ""
+    read -p "Escolha uma opção (1/2/3): " option
+    
+    case $option in
+        1)
+            log_info "Modo ATUALIZAR selecionado"
+            INSTALLATION_MODE="UPDATE"
+            cleanup_previous_installation
+            ;;
+        2)
+            log_info "Modo REPAIR selecionado"
+            INSTALLATION_MODE="REPAIR"
+            # Em modo repair, apenas recreia containers e configs
+            if [ -d "$CHATWOOT_DIR" ]; then
+                cd "$CHATWOOT_DIR"
+                docker compose down 2>/dev/null || true
+            fi
+            ;;
+        3)
+            log_error "Instalação cancelada pelo usuário"
+            exit 0
+            ;;
+        *)
+            log_error "Opção inválida"
+            exit 1
+            ;;
+    esac
+}
+
+preflight_checks() {
+    log_info "Executando verificações pré-voo..."
+    
+    # Verificar espaço em disco
+    local available_space=$(df /opt | tail -1 | awk '{print $4}')
+    if [ "$available_space" -lt 10485760 ]; then  # Menos de 10GB
+        log_warning "Espaço em disco baixo (< 10GB disponível)"
+    fi
+    
+    # Verificar permissões
+    if ! touch /opt/chatwoot_test_write 2>/dev/null; then
+        log_error "Sem permissão de escrita em /opt"
+        return 1
+    fi
+    rm -f /opt/chatwoot_test_write
+    
+    # Verificar conectividade Internet
+    if ! ping -c 1 8.8.8.8 >/dev/null 2>&1; then
+        log_warning "Conectividade com Internet pode estar limitada"
+    fi
+    
+    # Verificar ports
+    if netstat -tuln 2>/dev/null | grep -q :80 || netstat -tuln 2>/dev/null | grep -q :443; then
+        log_info "Porta 80 ou 443 já em uso (possível instalação anterior)"
+    fi
+    
+    log_success "Verificações pré-voo concluídas"
+}
+
+################################################################################
+# Backup e Recuperação
+################################################################################
+
+backup_before_changes() {
+    if [ -d "$CHATWOOT_DIR/.env" ]; then
+        local backup_timestamp=$(date +%Y%m%d_%H%M%S)
+        local backup_location="$CHATWOOT_DIR/backups/pre_change_$backup_timestamp"
+        mkdir -p "$backup_location"
+        
+        log_info "Fazendo backup de segurança antes das mudanças..."
+        cp "$CHATWOOT_DIR/.env" "$backup_location/.env" 2>/dev/null || true
+        cp /etc/nginx/sites-available/chatwoot "$backup_location/nginx_config" 2>/dev/null || true
+        
+        log_success "Backup pré-mudança criado em: $backup_location"
+    fi
 }
 
 ################################################################################
@@ -299,9 +451,19 @@ setup_directories() {
     log_info "Preparando diretórios..."
     
     mkdir -p "$CHATWOOT_DIR"
+    mkdir -p "$CHATWOOT_DIR/backups"
+    mkdir -p "$CHATWOOT_DIR/logs"
+    mkdir -p "/var/log/nginx"
+    mkdir -p "/var/log/chatwoot"
+    
+    # Dar permissões apropriadas
+    chmod 755 "$CHATWOOT_DIR"
+    chmod 755 "$CHATWOOT_DIR/backups"
+    chmod 755 "$CHATWOOT_DIR/logs"
+    
     cd "$CHATWOOT_DIR"
     
-    log_success "Diretórios criados em $CHATWOOT_DIR"
+    log_success "Diretórios criados e permissões configuradas"
 }
 
 ################################################################################
@@ -313,8 +475,18 @@ setup_docker_compose() {
     
     cd "$CHATWOOT_DIR"
     
+    # Se houver instalação anterior, remover containers com segurança
+    if [ -f "docker-compose.yml" ]; then
+        log_info "Removendo containers antigos com segurança..."
+        docker compose down --remove-orphans 2>/dev/null || true
+        sleep 2
+    fi
+    
     # Baixar docker-compose.production.yaml
-    curl -fsSL https://raw.githubusercontent.com/chatwoot/chatwoot/master/docker-compose.production.yaml -o docker-compose.yml
+    curl -fsSL https://raw.githubusercontent.com/chatwoot/chatwoot/master/docker-compose.production.yaml -o docker-compose.yml || {
+        log_error "Falha ao baixar docker-compose.yml"
+        return 1
+    }
     
     log_success "docker-compose.yml baixado"
 }
@@ -325,6 +497,12 @@ setup_docker_compose() {
 
 create_env_file() {
     log_info "Criando arquivo .env..."
+    
+    # Se .env existe, fazer backup e preservar variáveis
+    if [ -f "$CHATWOOT_DIR/.env" ]; then
+        log_info "Arquivo .env anterior encontrado, fazendo backup..."
+        cp "$CHATWOOT_DIR/.env" "$CHATWOOT_DIR/.env.backup.$(date +%s)"
+    fi
     
     cat > "$CHATWOOT_DIR/.env" << EOF
 # Chatwoot Environment Configuration
@@ -387,7 +565,7 @@ ADMIN_PASSWORD=$ADMIN_PASSWORD
 EOF
 
     chmod 600 "$CHATWOOT_DIR/.env"
-    log_success "Arquivo .env criado"
+    log_success "Arquivo .env criado (backup feito se existia anteriormente)"
 }
 
 ################################################################################
@@ -396,6 +574,10 @@ EOF
 
 setup_nginx() {
     log_info "Configurando Nginx..."
+    
+    # Remover config anterior se existir
+    [ -f "$NGINX_CONF" ] && rm -f "$NGINX_CONF"
+    [ -L "/etc/nginx/sites-enabled/chatwoot" ] && rm -f /etc/nginx/sites-enabled/chatwoot
     
     cat > "$NGINX_CONF" << 'EOF'
 upstream chatwoot {
@@ -571,6 +753,45 @@ validate_services() {
     log_warning "docker compose -f $CHATWOOT_DIR/docker-compose.yml logs"
 }
 
+log_installation_state() {
+    log_info "Registrando estado da instalação..."
+    
+    local state_file="$CHATWOOT_DIR/installation_state.log"
+    mkdir -p "$(dirname "$state_file")"
+    
+    {
+        echo "═══════════════════════════════════════════════════════"
+        echo "INSTALAÇÃO DO CHATWOOT - RELATÓRIO DE ESTADO"
+        echo "═══════════════════════════════════════════════════════"
+        echo "Timestamp: $(date '+%Y-%m-%d %H:%M:%S')"
+        echo ""
+        echo "CONFIGURAÇÃO DO SISTEMA:"
+        echo "  Hostname: $(hostname)"
+        echo "  IP: $(hostname -I)"
+        echo "  OS: $(cat /etc/os-release | grep PRETTY_NAME | cut -d= -f2)"
+        echo "  Kernel: $(uname -r)"
+        echo ""
+        echo "CONFIGURAÇÃO DO CHATWOOT:"
+        echo "  Diretório: $CHATWOOT_DIR"
+        echo "  Domínio: $DOMAIN"
+        echo "  Email SSL: $CERTBOT_EMAIL"
+        echo ""
+        echo "SERVIÇOS DOCKER:"
+        docker compose -f "$CHATWOOT_DIR/docker-compose.yml" ps 2>/dev/null || echo "  (Não disponível)"
+        echo ""
+        echo "CERTIFICADO SSL:"
+        certbot certificates 2>/dev/null | grep -A5 "$DOMAIN" || echo "  (Não configurado ainda)"
+        echo ""
+        echo "CRON JOBS:"
+        crontab -l 2>/dev/null | grep -v "^#" | head -5 || echo "  (Nenhum)"
+        echo ""
+        echo "ESPAÇO EM DISCO:"
+        df -h "$CHATWOOT_DIR" | tail -1
+        echo ""
+        echo "═══════════════════════════════════════════════════════"
+    } >> "$state_file" 2>&1
+}
+
 ################################################################################
 # Configurar Renovação Automática de SSL
 ################################################################################
@@ -597,8 +818,8 @@ EOF
 
     chmod +x /usr/local/bin/renewal-chatwoot.sh
     
-    # Adicionar cron job
-    (crontab -l 2>/dev/null | grep -v "renewal-chatwoot.sh"; echo "0 3 * * * /usr/local/bin/renewal-chatwoot.sh") | crontab -
+    # Remover cron job anterior se existir
+    (crontab -l 2>/dev/null | grep -v "renewal-chatwoot.sh" || true; echo "0 3 * * * /usr/local/bin/renewal-chatwoot.sh") | crontab -
     
     log_success "Renovação automática de SSL configurada"
 }
@@ -640,8 +861,8 @@ EOF
 
     chmod +x /usr/local/bin/backup-chatwoot.sh
     
-    # Adicionar cron job para backup diário
-    (crontab -l 2>/dev/null | grep -v "backup-chatwoot.sh"; echo "0 2 * * * /usr/local/bin/backup-chatwoot.sh") | crontab -
+    # Remover cron job anterior se existir, depois adicionar novo
+    (crontab -l 2>/dev/null | grep -v "backup-chatwoot.sh" || true; echo "0 2 * * * /usr/local/bin/backup-chatwoot.sh") | crontab -
     
     log_success "Script de backup criado"
 }
@@ -697,9 +918,26 @@ EOF
 
 print_summary() {
     echo ""
-    echo -e "${GREEN}===============================================${NC}"
-    echo -e "${GREEN}✓ Chatwoot instalado com sucesso!${NC}"
-    echo -e "${GREEN}===============================================${NC}"
+    
+    # Determinar mensagem baseada no modo de instalação
+    if [ "$INSTALLATION_MODE" = "NEW" ]; then
+        installation_msg="✓ Chatwoot instalado com sucesso!"
+        mode_desc="INSTALAÇÃO NOVA"
+        bg_color="$GREEN"
+    elif [ "$INSTALLATION_MODE" = "UPDATE" ]; then
+        installation_msg="✓ Chatwoot atualizado com sucesso!"
+        mode_desc="ATUALIZAÇÃO COMPLETA"
+        bg_color="$YELLOW"
+    else  # REPAIR
+        installation_msg="✓ Chatwoot reparado com sucesso!"
+        mode_desc="REPARAÇÃO/MANUTENÇÃO"
+        bg_color="$BLUE"
+    fi
+    
+    echo -e "${bg_color}===============================================${NC}"
+    echo -e "${bg_color}$installation_msg${NC}"
+    echo -e "${bg_color}Modo: $mode_desc${NC}"
+    echo -e "${bg_color}===============================================${NC}"
     echo ""
     
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━███${NC}"
@@ -799,25 +1037,48 @@ main() {
     check_initial_requirements
     configure_environment
     
+    # Detectar e lidar com instalação anterior
+    if detect_existing_installation; then
+        handle_existing_installation
+    fi
+    
+    # Executar verificações pré-voo
+    preflight_checks || exit 1
+    
+    # Fazer backup de segurança antes de começar
+    backup_before_changes
+    
     echo ""
-    log_info "Iniciando processo de instalação..."
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BLUE}  PROGRESSO DA INSTALAÇÃO${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
     
-    update_system
-    install_docker
-    install_nginx
-    install_certbot
-    setup_directories
-    setup_docker_compose
-    create_env_file
-    setup_ssl
-    setup_nginx
-    setup_ssl_renewal
-    create_backup_script
-    create_update_script
-    start_services
-    seed_database
+    # Garantir diretório de logs existe antes de run_step
+    mkdir -p "$CHATWOOT_DIR/logs" 2>/dev/null || true
+    
+    run_step "Atualizar sistema"                update_system
+    run_step "Instalar Docker"                  install_docker
+    run_step "Instalar Nginx"                   install_nginx
+    run_step "Instalar Certbot"                 install_certbot
+    run_step "Preparar diretórios"              setup_directories
+    run_step "Configurar Docker Compose"        setup_docker_compose
+    run_step "Criar arquivo .env"               create_env_file
+    run_step "Gerar certificado SSL"            setup_ssl
+    run_step "Configurar Nginx"                 setup_nginx
+    run_step "Configurar renovação SSL"         setup_ssl_renewal
+    run_step "Criar script de backup"           create_backup_script
+    run_step "Criar script de atualização"      create_update_script
+    run_step "Iniciar serviços"                 start_services
+    run_step "Popular banco de dados"           seed_database
+    
+    echo ""
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
+    
+    # Validação final (mostra progresso em tempo real)
     validate_services
+    log_installation_state
     
     print_summary
 }
