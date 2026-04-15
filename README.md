@@ -1,169 +1,376 @@
-<img src="./.github/screenshots/header.png#gh-light-mode-only" width="100%" alt="Header light mode"/>
-<img src="./.github/screenshots/header-dark.png#gh-dark-mode-only" width="100%" alt="Header dark mode"/>
+# Chatwoot – Instalação em VPS Ubuntu
 
-___
+Plataforma de atendimento ao cliente open-source, alternativa ao Intercom, Zendesk e Salesforce Service Cloud.
 
-# Chatwoot
-
-The modern customer support platform, an open-source alternative to Intercom, Zendesk, Salesforce Service Cloud etc.
-
-<p>
-  <img src="https://img.shields.io/circleci/build/github/chatwoot/chatwoot" alt="CircleCI Badge">
-    <a href="https://hub.docker.com/r/chatwoot/chatwoot/"><img src="https://img.shields.io/docker/pulls/chatwoot/chatwoot" alt="Docker Pull Badge"></a>
-  <a href="https://hub.docker.com/r/chatwoot/chatwoot/"><img src="https://img.shields.io/docker/cloud/build/chatwoot/chatwoot" alt="Docker Build Badge"></a>
-  <img src="https://img.shields.io/github/commit-activity/m/chatwoot/chatwoot" alt="Commits-per-month">
-  <a title="Crowdin" target="_self" href="https://chatwoot.crowdin.com/chatwoot"><img src="https://badges.crowdin.net/e/37ced7eba411064bd792feb3b7a28b16/localized.svg"></a>
-  <a href="https://discord.gg/cJXdrwS"><img src="https://img.shields.io/discord/647412545203994635" alt="Discord"></a>
-  <a href="https://status.chatwoot.com"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fchatwoot%2Fstatus%2Fmaster%2Fapi%2Fchatwoot%2Fuptime.json" alt="uptime"></a>
-  <a href="https://status.chatwoot.com"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fchatwoot%2Fstatus%2Fmaster%2Fapi%2Fchatwoot%2Fresponse-time.json" alt="response time"></a>
-  <a href="https://artifacthub.io/packages/helm/chatwoot/chatwoot"><img src="https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/artifact-hub" alt="Artifact HUB"></a>
-</p>
-
-
-<p>
-  <a href="https://heroku.com/deploy?template=https://github.com/chatwoot/chatwoot/tree/master" alt="Deploy to Heroku">
-     <img width="150" alt="Deploy" src="https://www.herokucdn.com/deploy/button.svg"/>
-  </a>
-  <a href="https://marketplace.digitalocean.com/apps/chatwoot?refcode=f2238426a2a8" alt="Deploy to DigitalOcean">
-     <img width="200" alt="Deploy to DO" src="https://www.deploytodo.com/do-btn-blue.svg"/>
-  </a>
-</p>
-
-<img src="./.github/screenshots/dashboard.png#gh-light-mode-only" width="100%" alt="Chat dashboard dark mode"/>
-<img src="./.github/screenshots/dashboard-dark.png#gh-dark-mode-only" width="100%" alt="Chat dashboard"/>
+Este guia cobre a instalação completa do Chatwoot em uma **VPS Ubuntu** usando **Docker com imagem personalizada**.
 
 ---
 
-Chatwoot is the modern, open-source, and self-hosted customer support platform designed to help businesses deliver exceptional customer support experience. Built for scale and flexibility, Chatwoot gives you full control over your customer data while providing powerful tools to manage conversations across channels.
+## Pré-requisitos
 
-### ✨ Captain – AI Agent for Support
+| Requisito | Mínimo | Recomendado |
+|-----------|--------|-------------|
+| **Sistema** | Ubuntu 20.04 | Ubuntu 22.04 ou 24.04 |
+| **RAM** | 2 GB | 4 GB+ |
+| **Disco** | 10 GB livres | 20 GB+ |
+| **Portas** | 80, 443 abertas | 80, 443, 22 |
+| **Domínio** | Subdomínio apontando para o IP da VPS | `chat.seudominio.com` |
+| **Acesso** | root ou sudo | root |
 
-Supercharge your support with Captain, Chatwoot’s AI agent. Captain helps automate responses, handle common queries, and reduce agent workload—ensuring customers get instant, accurate answers. With Captain, your team can focus on complex conversations while routine questions are resolved automatically. Read more about Captain [here](https://chwt.app/captain-docs).
+## Configuração de DNS
 
-### 💬 Omnichannel Support Desk
+Antes de iniciar, aponte seu domínio/subdomínio para o IP da VPS:
 
-Chatwoot centralizes all customer conversations into one powerful inbox, no matter where your customers reach out from. It supports live chat on your website, email, Facebook, Instagram, Twitter, WhatsApp, Telegram, Line, SMS etc.
+1. Acesse o painel DNS do seu registrador (GoDaddy, Namecheap, RegistroBR, etc.)
+2. Crie um registro **A**:
 
-### 📚 Help center portal
+```
+Nome:   chat.seudominio.com
+Tipo:   A
+Valor:  IP_DA_SUA_VPS
+TTL:    3600
+```
 
-Publish help articles, FAQs, and guides through the built-in Help Center Portal. Enable customers to find answers on their own, reduce repetitive queries, and keep your support team focused on more complex issues.
-
-### 🗂️ Other features
-
-#### Collaboration & Productivity
-
-- Private Notes and @mentions for internal team discussions.
-- Labels to organize and categorize conversations.
-- Keyboard Shortcuts and a Command Bar for quick navigation.
-- Canned Responses to reply faster to frequently asked questions.
-- Auto-Assignment to route conversations based on agent availability.
-- Multi-lingual Support to serve customers in multiple languages.
-- Custom Views and Filters for better inbox organization.
-- Business Hours and Auto-Responders to manage response expectations.
-- Teams and Automation tools for scaling support workflows.
-- Agent Capacity Management to balance workload across the team.
-
-#### Customer Data & Segmentation
-- Contact Management with profiles and interaction history.
-- Contact Segments and Notes for targeted communication.
-- Campaigns to proactively engage customers.
-- Custom Attributes for storing additional customer data.
-- Pre-Chat Forms to collect user information before starting conversations.
-
-#### Integrations
-- Slack Integration to manage conversations directly from Slack.
-- Dialogflow Integration for chatbot automation.
-- Dashboard Apps to embed internal tools within Chatwoot.
-- Shopify Integration to view and manage customer orders right within Chatwoot.
-- Use Google Translate to translate messages from your customers in realtime.
-- Create and manage Linear tickets within Chatwoot.
-
-#### Reports & Insights
-- Live View of ongoing conversations for real-time monitoring.
-- Conversation, Agent, Inbox, Label, and Team Reports for operational visibility.
-- CSAT Reports to measure customer satisfaction.
-- Downloadable Reports for offline analysis and reporting.
-
-
-## Documentation
-
-Detailed documentation is available at [chatwoot.com/help-center](https://www.chatwoot.com/help-center).
-
-## Translation process
-
-The translation process for Chatwoot web and mobile app is managed at [https://translate.chatwoot.com](https://translate.chatwoot.com) using Crowdin. Please read the [translation guide](https://www.chatwoot.com/docs/contributing/translating-chatwoot-to-your-language) for contributing to Chatwoot.
-
-## Branching model
-
-We use the [git-flow](https://nvie.com/posts/a-successful-git-branching-model/) branching model. The base branch is `develop`.
-If you are looking for a stable version, please use the `master` or tags labelled as `v1.x.x`.
-
-## Deployment
-
-### Heroku one-click deploy
-
-Deploying Chatwoot to Heroku is a breeze. It's as simple as clicking this button:
-
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/chatwoot/chatwoot/tree/master)
-
-Follow this [link](https://www.chatwoot.com/docs/environment-variables) to understand setting the correct environment variables for the app to work with all the features. There might be breakages if you do not set the relevant environment variables.
-
-
-### DigitalOcean 1-Click Kubernetes deployment
-
-Chatwoot now supports 1-Click deployment to DigitalOcean as a kubernetes app.
-
-<a href="https://marketplace.digitalocean.com/apps/chatwoot?refcode=f2238426a2a8" alt="Deploy to DigitalOcean">
-  <img width="200" alt="Deploy to DO" src="https://www.deploytodo.com/do-btn-blue.svg"/>
-</a>
-
-### VPS Self-Hosted Deploy (Ubuntu)
-
-Deploy Chatwoot on your own VPS with a single automated script. Supports Ubuntu 20.04, 22.04, and 24.04.
-
-**Requirements:**
-- VPS with at least 2GB RAM (4GB+ recommended)
-- A domain/subdomain pointing to your VPS IP
-- Ports 80 and 443 open
-
-**Quick Start:**
+3. Verifique a propagação:
 
 ```bash
-# 1. Copy the script to your VPS
-scp setup_vps.sh root@your-server.com:/root/
+nslookup chat.seudominio.com
+```
 
-# 2. Connect to your VPS
-ssh root@your-server.com
+> Use subdomínio (`chat.seudominio.com`) em vez de domínio raiz para maior flexibilidade e isolamento.
 
-# 3. Run the setup script
+Para configuração detalhada, veja [DOMAIN_SETUP.md](./DOMAIN_SETUP.md).
+
+---
+
+## Instalação Rápida (Script Automatizado)
+
+### Opção 1: Upload + execução manual
+
+```bash
+# No seu computador — envie o script para a VPS
+scp setup_vps.sh root@seu-servidor:/root/
+
+# Conecte na VPS
+ssh root@seu-servidor
+
+# Execute
 sudo bash setup_vps.sh
 ```
 
-The script will interactively ask for your domain, SSL email, admin credentials, and then automatically install Docker, Nginx, SSL certificates, PostgreSQL, Redis, and all Chatwoot services.
+### Opção 2: Usando o deploy helper
 
-For detailed instructions, domain configuration, and troubleshooting, see:
-- [SETUP_VPS.md](./SETUP_VPS.md) – Full installation guide
-- [SETUP_VPS_QUICK_START.md](./SETUP_VPS_QUICK_START.md) – Quick start & re-run guide
-- [DOMAIN_SETUP.md](./DOMAIN_SETUP.md) – Domain/subdomain DNS configuration
-- [TROUBLESHOOTING_VPS.md](./TROUBLESHOOTING_VPS.md) – Common issues & fixes
+**Linux/macOS:**
+```bash
+bash deploy.sh
+```
 
-### Other deployment options
+**Windows (PowerShell):**
+```powershell
+.\deploy.ps1
+```
 
-For other supported options, checkout our [deployment page](https://chatwoot.com/deploy).
+Os helpers pedem host, usuário e porta SSH, fazem o upload e executam o script automaticamente.
 
-## Security
+### O que o script pergunta
 
-Looking to report a vulnerability? Please refer our [SECURITY.md](./SECURITY.md) file.
+| Pergunta | Exemplo |
+|----------|---------|
+| Domínio/URL | `chat.seudominio.com` |
+| Email para SSL | `admin@seudominio.com` |
+| Email do administrador | `seu-email@empresa.com` |
+| Nome do administrador | `João Silva` |
+| Senha do administrador | Mín. 6 caracteres |
 
-## Community
+Senhas do PostgreSQL, Redis e Rails são geradas automaticamente (32 caracteres).
 
-If you need help or just want to hang out, come, say hi on our [Discord](https://discord.gg/cJXdrwS) server.
+### O que o script instala
 
-## Contributors
+- Docker e Docker Compose
+- Nginx como reverse proxy
+- Certificado SSL (Let's Encrypt) com renovação automática
+- PostgreSQL 16 (com pgvector)
+- Redis
+- Chatwoot (Rails + Sidekiq) via imagem Docker personalizada
+- Scripts de backup e atualização
+- Cron de backup diário às 02:00
 
-Thanks goes to all these [wonderful people](https://www.chatwoot.com/docs/contributors):
+Tempo estimado: **15–20 minutos**.
 
-<a href="https://github.com/chatwoot/chatwoot/graphs/contributors"><img src="https://opencollective.com/chatwoot/contributors.svg?width=890&button=false" /></a>
+---
 
+## Imagem Docker Personalizada
+
+Este projeto **não usa a imagem oficial** `chatwoot/chatwoot` do Docker Hub. O `docker-compose.production.yaml` constrói uma imagem customizada a partir do código-fonte local.
+
+### Como funciona
+
+O arquivo `docker-compose.production.yaml` define:
+
+```yaml
+services:
+  base: &base
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: chatwoot-custom:latest
+```
+
+Todos os serviços (`rails`, `sidekiq`) herdam desta base. A imagem `chatwoot-custom:latest` é construída localmente com suas personalizações.
+
+### Build manual da imagem
+
+```bash
+cd /opt/chatwoot
+
+# Build da imagem personalizada
+docker compose -f docker-compose.production.yaml build
+
+# Verificar a imagem
+docker images | grep chatwoot-custom
+```
+
+### Rebuild após alterações no código
+
+Sempre que modificar o código-fonte, rebuild a imagem:
+
+```bash
+cd /opt/chatwoot
+
+# Rebuild sem cache (garante código atualizado)
+docker compose -f docker-compose.production.yaml build --no-cache
+
+# Recriar os containers com a nova imagem
+docker compose -f docker-compose.production.yaml up -d
+```
+
+### Personalizar o Dockerfile
+
+O Dockerfile está em `docker/Dockerfile` e usa multi-stage build:
+
+1. **pre-builder** — Instala dependências Ruby + Node, compila assets
+2. **final** — Imagem enxuta só com runtime
+
+Para adicionar dependências do sistema na imagem final:
+
+```dockerfile
+# Em docker/Dockerfile, na etapa final (após "FROM ruby:3.4.4-alpine3.21")
+RUN apk add --no-cache sua-dependencia
+```
+
+### Usar um registry privado (opcional)
+
+Se quiser publicar sua imagem personalizada:
+
+```bash
+# Tag com seu registry
+docker tag chatwoot-custom:latest seu-registry.com/chatwoot-custom:latest
+
+# Push
+docker push seu-registry.com/chatwoot-custom:latest
+```
+
+Depois altere o `docker-compose.production.yaml`:
+
+```yaml
+services:
+  base: &base
+    image: seu-registry.com/chatwoot-custom:latest
+```
+
+---
+
+## Estrutura de Arquivos na VPS
+
+Após a instalação:
+
+```
+/opt/chatwoot/
+├── .env                             # Variáveis de ambiente
+├── docker-compose.production.yaml
+├── docker/
+│   └── Dockerfile                   # Dockerfile personalizado
+├── app/                             # Código-fonte
+├── backups/                         # Backups automáticos
+└── logs/                            # Logs de instalação
+
+/etc/nginx/sites-available/chatwoot  # Config do Nginx
+/usr/local/bin/backup-chatwoot.sh    # Script de backup
+/usr/local/bin/update-chatwoot.sh    # Script de atualização
+```
+
+---
+
+## Comandos Úteis Pós-Instalação
+
+### Gerenciar serviços
+
+```bash
+cd /opt/chatwoot
+
+# Ver status dos containers
+docker compose ps
+
+# Ver logs em tempo real
+docker compose logs -f rails
+
+# Parar todos os serviços
+docker compose down
+
+# Iniciar todos os serviços
+docker compose up -d
+
+# Reiniciar um serviço específico
+docker compose restart rails
+docker compose restart sidekiq
+```
+
+### Console Rails
+
+```bash
+cd /opt/chatwoot
+docker compose exec rails bundle exec rails console
+```
+
+### Backup manual
+
+```bash
+/usr/local/bin/backup-chatwoot.sh
+ls -lah /opt/chatwoot/backups/
+```
+
+### Atualizar Chatwoot
+
+```bash
+/usr/local/bin/update-chatwoot.sh
+```
+
+O script de atualização faz backup antes, rebuild da imagem, executa migrations e reinicia os serviços.
+
+---
+
+## Configuração do `.env`
+
+O arquivo `/opt/chatwoot/.env` contém todas as variáveis. Para editar:
+
+```bash
+nano /opt/chatwoot/.env
+```
+
+Após editar, reinicie:
+
+```bash
+cd /opt/chatwoot
+docker compose restart rails sidekiq
+```
+
+### SMTP (envio de emails)
+
+```env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=seu-email@gmail.com
+SMTP_PASSWORD=sua-senha-de-app
+SMTP_AUTHENTICATION=login
+SMTP_ENABLE_STARTTLS_AUTO=true
+```
+
+### S3 (armazenamento de anexos)
+
+```env
+S3_BUCKET_NAME=seu-bucket
+AWS_ACCESS_KEY_ID=sua-chave
+AWS_SECRET_ACCESS_KEY=seu-secret
+AWS_REGION=us-east-1
+```
+
+### Sentry (monitoramento de erros)
+
+```env
+SENTRY_DSN=sua-dsn-do-sentry
+```
+
+---
+
+## Reinstalação / Reparo
+
+Se precisar rodar o script novamente:
+
+```bash
+sudo bash setup_vps.sh
+```
+
+O script detecta instalações anteriores e oferece:
+
+1. **ATUALIZAR** — Limpa configs e reinstala (recomendado)
+2. **REPAIR** — Mantém dados e repara configurações
+3. **CANCELAR** — Sai sem fazer nada
+
+---
+
+## Segurança
+
+O script já configura:
+
+- Senhas seguras de 32 caracteres (PostgreSQL, Redis, Rails)
+- Certificado SSL com renovação automática
+- Headers de segurança HTTP no Nginx
+- Arquivo `.env` com permissões 600
+- Debug desabilitado em produção
+
+### Recomendações adicionais
+
+```bash
+# Configurar firewall
+ufw allow 22/tcp
+ufw allow 80/tcp
+ufw allow 443/tcp
+ufw enable
+
+# Instalar fail2ban
+apt-get install -y fail2ban
+systemctl enable fail2ban
+```
+
+---
+
+## Troubleshooting
+
+### Aplicação não responde
+
+```bash
+cd /opt/chatwoot
+docker compose logs -f rails
+docker compose restart
+```
+
+### Certificado SSL expirado
+
+```bash
+certbot renew --force-renewal
+```
+
+### Porta em uso
+
+```bash
+lsof -i :80
+lsof -i :443
+```
+
+Para mais cenários, veja [TROUBLESHOOTING_VPS.md](./TROUBLESHOOTING_VPS.md).
+
+---
+
+## Documentação Complementar
+
+| Documento | Descrição |
+|-----------|-----------|
+| [SETUP_VPS.md](./SETUP_VPS.md) | Guia completo de instalação |
+| [SETUP_VPS_QUICK_START.md](./SETUP_VPS_QUICK_START.md) | Quick start e re-execução |
+| [DOMAIN_SETUP.md](./DOMAIN_SETUP.md) | Configuração de domínio/DNS |
+| [TROUBLESHOOTING_VPS.md](./TROUBLESHOOTING_VPS.md) | Resolução de problemas |
+| [SECURITY.md](./SECURITY.md) | Política de segurança |
+
+## Licença
 
 *Chatwoot* &copy; 2017-2026, Chatwoot Inc - Released under the MIT License.
