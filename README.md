@@ -117,6 +117,36 @@ Chatwoot now supports 1-Click deployment to DigitalOcean as a kubernetes app.
   <img width="200" alt="Deploy to DO" src="https://www.deploytodo.com/do-btn-blue.svg"/>
 </a>
 
+### VPS Self-Hosted Deploy (Ubuntu)
+
+Deploy Chatwoot on your own VPS with a single automated script. Supports Ubuntu 20.04, 22.04, and 24.04.
+
+**Requirements:**
+- VPS with at least 2GB RAM (4GB+ recommended)
+- A domain/subdomain pointing to your VPS IP
+- Ports 80 and 443 open
+
+**Quick Start:**
+
+```bash
+# 1. Copy the script to your VPS
+scp setup_vps.sh root@your-server.com:/root/
+
+# 2. Connect to your VPS
+ssh root@your-server.com
+
+# 3. Run the setup script
+sudo bash setup_vps.sh
+```
+
+The script will interactively ask for your domain, SSL email, admin credentials, and then automatically install Docker, Nginx, SSL certificates, PostgreSQL, Redis, and all Chatwoot services.
+
+For detailed instructions, domain configuration, and troubleshooting, see:
+- [SETUP_VPS.md](./SETUP_VPS.md) – Full installation guide
+- [SETUP_VPS_QUICK_START.md](./SETUP_VPS_QUICK_START.md) – Quick start & re-run guide
+- [DOMAIN_SETUP.md](./DOMAIN_SETUP.md) – Domain/subdomain DNS configuration
+- [TROUBLESHOOTING_VPS.md](./TROUBLESHOOTING_VPS.md) – Common issues & fixes
+
 ### Other deployment options
 
 For other supported options, checkout our [deployment page](https://chatwoot.com/deploy).
