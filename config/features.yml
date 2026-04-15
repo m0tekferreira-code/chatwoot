@@ -112,10 +112,9 @@
   display_name: Message Reply To
   enabled: false
   deprecated: true
-- name: insert_article_in_reply
-  display_name: Insert Article in Reply
-  enabled: false
-  deprecated: true
+- name: pipelines
+  display_name: Pipelines
+  enabled: true
 - name: inbox_view
   display_name: Inbox View
   enabled: false
@@ -241,6 +240,4 @@
   display_name: Advanced Assignment
   enabled: false
   premium: true
-- name: pipelines
-  display_name: Pipelines
-  enabled: true
+
