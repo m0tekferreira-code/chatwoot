@@ -2,7 +2,7 @@ const { Client } = require('ssh2');
 
 const conn = new Client();
 conn.on('ready', () => {
-  console.log('Aplicando fix POST manual na VPS...');
+  console.log('--- DEPLOY DO PADRÃO OURO META v25.0 ---');
   
   const commands = [
     'cd /home/chatwoot/chatwoot && git stash && git pull custom develop',
@@ -11,12 +11,12 @@ conn.on('ready', () => {
 
   const executeCommand = (index) => {
     if (index >= commands.length) {
-      console.log('REINICIADO COM POST MANUAL! TENTE O INSTAGRAM AGORA.');
+      console.log('REINICIADO COM SUCESSO! AGORA SIM, TENTE O INSTAGRAM.');
       conn.end();
       return;
     }
 
-    console.log(`Executando: ${commands[index]}`);
+    console.log(`Comando: ${commands[index]}`);
     conn.exec(commands[index], (err, stream) => {
       if (err) throw err;
       stream.on('close', () => executeCommand(index + 1))

@@ -7,10 +7,10 @@ module InstagramConcern
       client_secret,
       {
         site: 'https://api.instagram.com',
-        authorize_url: 'https://api.instagram.com/oauth/authorize',
+        authorize_url: 'https://www.instagram.com/oauth/authorize', # Atualizado para www
         token_url: 'https://api.instagram.com/oauth/access_token',
         auth_scheme: :request_body,
-        token_method: :post # Forçando POST aqui
+        token_method: :post
       }
     )
   end
@@ -27,7 +27,6 @@ module InstagramConcern
 
   def exchange_code_for_token(code)
     # Passo 1: Trocar code por token de curta duração
-    # OBRIGATÓRIO: POST via api.instagram.com
     endpoint = 'https://api.instagram.com/oauth/access_token'
     params = {
       client_id: client_id,
@@ -44,7 +43,8 @@ module InstagramConcern
     )
 
     unless response.success?
-      Rails.logger.error "Instagram Code Exchange Failed. Status: #{response.code}, Body: #{response.body}"
+      # Log detalhado para depuração
+      Rails.logger.error "Instagram Code Exchange Failed. Code: #{response.code}, Response: #{response.body}"
       raise "Failed to exchange code: #{response.body}"
     end
 
@@ -53,8 +53,6 @@ module InstagramConcern
 
   def exchange_for_long_lived_token(short_lived_token)
     # Passo 2: Trocar curta por longa duração
-    # OBRIGATÓRIO: GET via graph.instagram.com
-    # IMPORTANTE: Remover client_id daqui para evitar erro 101
     endpoint = "https://graph.instagram.com/v25.0/access_token"
     params = {
       grant_type: 'ig_exchange_token',
@@ -91,6 +89,7 @@ module InstagramConcern
     end
 
     unless response.success?
+      # Log detalhado para depuração
       Rails.logger.error "#{error_prefix}. Status: #{response.code}, Body: #{response.body}"
       raise "#{error_prefix}: #{response.body}"
     end
@@ -99,7 +98,7 @@ module InstagramConcern
       JSON.parse(response.body)
     rescue JSON::ParserError => e
       ChatwootExceptionTracker.new(e).capture_exception
-      Rails.logger.error "Invalid JSON response: #{response.body}"
+      Rails.logger.error "Invalid JSON response from Instagram: #{response.body}"
       raise e
     end
   end

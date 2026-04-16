@@ -19,13 +19,18 @@ class Instagram::CallbacksController < ApplicationController
 
   # Process the authorization code and create inbox
   def process_successful_authorization
-    # Fazendo a troca do code pelo token de curta duração manualmente via POST
-    # para evitar o erro "Unsupported request - method type: get"
+    # Passo 1: Troca do code por token (Padrão Business Login)
     @response_data = exchange_code_for_token(oauth_code)
     
-    # Criando um objeto compatível com o resto do código (se necessário)
-    # ou apenas usando o token retornado
-    @short_lived_token = @response_data['access_token']
+    # IMPORTANTE: No novo Business Login, o token vem dentro de @response_data['access_token'] 
+    # ou num array @response_data['data'][0]['access_token'] segundo o manual.
+    # Vou fazer um fallback para ambos.
+    @short_lived_token = @response_data['access_token'] || (@response_data['data'] && @response_data['data'][0]['access_token'])
+
+    if @short_lived_token.blank?
+      Rails.logger.error "Instagram Access Token not found in response: #{@response_data.inspect}"
+      raise "Access token missing from Instagram response"
+    end
 
     @long_lived_token_response = exchange_for_long_lived_token(@short_lived_token)
     inbox, already_exists = find_or_create_inbox
