@@ -26,8 +26,8 @@ module InstagramConcern
   end
 
   def exchange_code_for_token(code)
-    # Primeiro passo: Trocar o code pelo token de curta duração
-    # Este endpoint EXIGE POST segundo a documentação e seu reporte
+    # Passo 1: Trocar code por token de curta duração
+    # OBRIGATÓRIO: POST via api.instagram.com
     endpoint = 'https://api.instagram.com/oauth/access_token'
     params = {
       client_id: client_id,
@@ -37,7 +37,6 @@ module InstagramConcern
       code: code
     }
 
-    # Usando POST explícito e enviando params no corpo (body)
     response = HTTParty.post(
       endpoint,
       body: params,
@@ -45,7 +44,7 @@ module InstagramConcern
     )
 
     unless response.success?
-      Rails.logger.error "Failed to exchange code for token. Status: #{response.code}, Body: #{response.body}"
+      Rails.logger.error "Instagram Code Exchange Failed. Status: #{response.code}, Body: #{response.body}"
       raise "Failed to exchange code: #{response.body}"
     end
 
@@ -53,17 +52,17 @@ module InstagramConcern
   end
 
   def exchange_for_long_lived_token(short_lived_token)
-    # Segundo passo: Trocar curta duração por longa duração
-    endpoint = 'https://graph.instagram.com/v25.0/access_token'
+    # Passo 2: Trocar curta por longa duração
+    # OBRIGATÓRIO: GET via graph.instagram.com
+    # IMPORTANTE: Remover client_id daqui para evitar erro 101
+    endpoint = "https://graph.instagram.com/v25.0/access_token"
     params = {
       grant_type: 'ig_exchange_token',
       client_secret: client_secret,
       access_token: short_lived_token
     }
 
-    # Para este endpoint em graph.instagram.com, a Meta costuma lidar com GET ou POST
-    # Vou usar POST para garantir, já que o GET deu erro de método antes
-    make_api_request(endpoint, params, 'Failed to exchange token', :post)
+    make_api_request(endpoint, params, 'Failed to exchange token', :get)
   end
 
   def fetch_instagram_user_details(access_token)
