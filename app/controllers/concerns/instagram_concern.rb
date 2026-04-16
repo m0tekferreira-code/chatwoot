@@ -10,7 +10,7 @@ module InstagramConcern
         authorize_url: 'https://api.instagram.com/oauth/authorize',
         token_url: 'https://api.instagram.com/oauth/access_token',
         auth_scheme: :request_body,
-        token_method: :post
+        token_method: :post # Forçando POST aqui
       }
     )
   end
@@ -25,8 +25,35 @@ module InstagramConcern
     GlobalConfigService.load('INSTAGRAM_APP_SECRET', nil)
   end
 
+  def exchange_code_for_token(code)
+    # Primeiro passo: Trocar o code pelo token de curta duração
+    # Este endpoint EXIGE POST segundo a documentação e seu reporte
+    endpoint = 'https://api.instagram.com/oauth/access_token'
+    params = {
+      client_id: client_id,
+      client_secret: client_secret,
+      grant_type: 'authorization_code',
+      redirect_uri: "#{base_url}/#{provider_name}/callback",
+      code: code
+    }
+
+    # Usando POST explícito e enviando params no corpo (body)
+    response = HTTParty.post(
+      endpoint,
+      body: params,
+      headers: { 'Accept' => 'application/json' }
+    )
+
+    unless response.success?
+      Rails.logger.error "Failed to exchange code for token. Status: #{response.code}, Body: #{response.body}"
+      raise "Failed to exchange code: #{response.body}"
+    end
+
+    JSON.parse(response.body)
+  end
+
   def exchange_for_long_lived_token(short_lived_token)
-    # Voltando para o domínio Instagram com a versão v25.0 que você indicou
+    # Segundo passo: Trocar curta duração por longa duração
     endpoint = 'https://graph.instagram.com/v25.0/access_token'
     params = {
       grant_type: 'ig_exchange_token',
@@ -34,11 +61,12 @@ module InstagramConcern
       access_token: short_lived_token
     }
 
-    make_api_request(endpoint, params, 'Failed to exchange token', :get)
+    # Para este endpoint em graph.instagram.com, a Meta costuma lidar com GET ou POST
+    # Vou usar POST para garantir, já que o GET deu erro de método antes
+    make_api_request(endpoint, params, 'Failed to exchange token', :post)
   end
 
   def fetch_instagram_user_details(access_token)
-    # Usando v25.0 aqui também
     endpoint = 'https://graph.instagram.com/v25.0/me'
     params = {
       fields: 'id,username,user_id,name,profile_picture_url,account_type',

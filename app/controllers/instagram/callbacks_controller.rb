@@ -19,13 +19,15 @@ class Instagram::CallbacksController < ApplicationController
 
   # Process the authorization code and create inbox
   def process_successful_authorization
-    @response = instagram_client.auth_code.get_token(
-      oauth_code,
-      redirect_uri: "#{base_url}/#{provider_name}/callback",
-      grant_type: 'authorization_code'
-    )
+    # Fazendo a troca do code pelo token de curta duração manualmente via POST
+    # para evitar o erro "Unsupported request - method type: get"
+    @response_data = exchange_code_for_token(oauth_code)
+    
+    # Criando um objeto compatível com o resto do código (se necessário)
+    # ou apenas usando o token retornado
+    @short_lived_token = @response_data['access_token']
 
-    @long_lived_token_response = exchange_for_long_lived_token(@response.token)
+    @long_lived_token_response = exchange_for_long_lived_token(@short_lived_token)
     inbox, already_exists = find_or_create_inbox
 
     if already_exists
