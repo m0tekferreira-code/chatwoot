@@ -2,13 +2,30 @@ const { Client } = require('ssh2');
 
 const conn = new Client();
 conn.on('ready', () => {
-  console.log('Validando alteração no .env...');
-  conn.exec(`grep "INSTAGRAM_VERIFY_TOKEN" /home/chatwoot/chatwoot/.env`, (err, stream) => {
-    if (err) throw err;
-    stream.on('close', () => conn.end()).on('data', (data) => {
-      console.log('ATUALIZADO: ' + data);
+  console.log('Aplicando fix de token POST na VPS...');
+  
+  const commands = [
+    'cd /home/chatwoot/chatwoot && git stash && git pull custom develop',
+    'systemctl restart chatwoot-web.1 chatwoot-worker.1'
+  ];
+
+  const executeCommand = (index) => {
+    if (index >= commands.length) {
+      console.log('DADOS ATUALIZADOS! TENTE NOVAMENTE O LOGIN DO INSTAGRAM.');
+      conn.end();
+      return;
+    }
+
+    console.log(`Executando: ${commands[index]}`);
+    conn.exec(commands[index], (err, stream) => {
+      if (err) throw err;
+      stream.on('close', () => executeCommand(index + 1))
+            .on('data', (d) => console.log('LOG: ' + d));
     });
-  });
+  };
+
+  executeCommand(0);
+
 }).connect({
   host: '195.7.7.220', port: 22, username: 'root', password: 'Ap@lo20060'
 });
