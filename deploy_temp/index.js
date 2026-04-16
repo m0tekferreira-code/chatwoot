@@ -2,7 +2,7 @@ const { Client } = require('ssh2');
 
 const conn = new Client();
 conn.on('ready', () => {
-  console.log('--- DEPLOY FIDELIDADE MÁXIMA ---');
+  console.log('--- DEPLOY COM FORM-URLENCODED E POST ---');
   
   const commands = [
     'cd /home/chatwoot/chatwoot && git stash && git pull custom develop',
@@ -11,7 +11,7 @@ conn.on('ready', () => {
 
   const executeCommand = (index) => {
     if (index >= commands.length) {
-      console.log('--- VPS ATUALIZADA! TESTE O INSTAGRAM AGORA. ---');
+      console.log('--- VPS ATUALIZADA! O POST AGORA TEM HEADERS DE FORMULÁRIO. TESTE NOVAMENTE. ---');
       conn.end();
       return;
     }

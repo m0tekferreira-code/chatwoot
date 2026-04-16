@@ -59,8 +59,8 @@ module InstagramConcern
   end
 
   def exchange_for_long_lived_token(short_lived_token)
-    # Passo 2: Trocar curta por longa duração via GET (segundo manual)
-    # Mas se o GET der "method type: get unsupported", tentaremos POST
+    # Passo 2: Trocar curta por longa duração
+    # FORÇANDO POST: Embora o manual diga GET, o erro 100 prova que sua conta exige POST
     endpoint = "https://graph.instagram.com/access_token"
     params = {
       grant_type: 'ig_exchange_token',
@@ -68,35 +68,30 @@ module InstagramConcern
       access_token: short_lived_token
     }
 
-    Rails.logger.info "[Instagram-Auth] Iniciando Passo 2 (Long-lived) via GET..."
-    make_api_request(endpoint, params, 'Failed to exchange token', :get)
+    Rails.logger.info "[Instagram-Auth] Iniciando Passo 2 (Long-lived) via POST (Forçado)..."
+    make_api_request(endpoint, params, 'Failed to exchange token', :post)
   end
 
   def fetch_instagram_user_details(access_token)
-    # Endpoint de detalhes (URL curta sem v25.0)
+    # Endpoint de detalhes (Passo 3)
     endpoint = 'https://graph.instagram.com/me'
     params = {
       fields: 'id,username,user_id,name,profile_picture_url,account_type',
       access_token: access_token
     }
 
-    Rails.logger.info "Buscando detalhes do usuário no Instagram (Passo 3): #{endpoint}"
+    Rails.logger.info "[Instagram-Auth] Buscando detalhes do usuário (Passo 3) via GET..."
     make_api_request(endpoint, params, 'Failed to fetch Instagram user details', :get)
   end
 
   def make_api_request(endpoint, params, error_prefix, method = :get)
+    headers = { 'Accept' => 'application/json' }
+    
     if method == :post
-      response = HTTParty.post(
-        endpoint,
-        body: params,
-        headers: { 'Accept' => 'application/json' }
-      )
+      headers['Content-Type'] = 'application/x-www-form-urlencoded'
+      response = HTTParty.post(endpoint, body: params, headers: headers)
     else
-      response = HTTParty.get(
-        endpoint,
-        query: params,
-        headers: { 'Accept' => 'application/json' }
-      )
+      response = HTTParty.get(endpoint, query: params, headers: headers)
     end
 
     unless response.success?
