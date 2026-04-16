@@ -26,8 +26,7 @@ module InstagramConcern
   end
 
   def exchange_code_for_token(code)
-    # Passo 1 (CRITICAL): Trocar code por token via POST
-    # Conforme reportado, o Instagram EXIGE POST e Content-Type de formulário
+    # Passo 1 (POST)
     endpoint = 'https://api.instagram.com/oauth/access_token'
     params = {
       client_id: client_id,
@@ -37,7 +36,7 @@ module InstagramConcern
       code: code
     }
 
-    Rails.logger.info "[Instagram-Auth] Iniciando troca de code (Passo 1) via POST..."
+    Rails.logger.info "[Instagram-Auth] Passo 1: Enviando POST para #{endpoint}..."
     
     response = HTTParty.post(
       endpoint,
@@ -49,18 +48,19 @@ module InstagramConcern
     )
 
     unless response.success?
-      Rails.logger.error "[Instagram-Auth] Passo 1 FALHOU. Code: #{response.code}, Response: #{response.body}"
+      Rails.logger.error "[Instagram-Auth] Passo 1 FALHOU. Code: #{response.code}, Body: #{response.body}"
       raise "Failed to exchange code: #{response.body}"
     end
 
     data = JSON.parse(response.body)
-    Rails.logger.info "[Instagram-Auth] Passo 1 concluído com SUCESSO."
+    Rails.logger.info "[Instagram-Auth] Passo 1 SUCESSO. Campos recebidos: #{data.keys.join(', ')}"
     data
   end
 
   def exchange_for_long_lived_token(short_lived_token)
-    # Passo 2: Trocar curta por longa duração
-    # FORÇANDO POST: Embora o manual diga GET, o erro 100 prova que sua conta exige POST
+    # Passo 2 (REVERTIDO PARA GET)
+    # Segundo seu log, POST foi rejeitado, então GET é o caminho.
+    # Vou usar a URL limpa sem versão para evitar o erro de método.
     endpoint = "https://graph.instagram.com/access_token"
     params = {
       grant_type: 'ig_exchange_token',
@@ -68,8 +68,8 @@ module InstagramConcern
       access_token: short_lived_token
     }
 
-    Rails.logger.info "[Instagram-Auth] Iniciando Passo 2 (Long-lived) via POST (Forçado)..."
-    make_api_request(endpoint, params, 'Failed to exchange token', :post)
+    Rails.logger.info "[Instagram-Auth] Passo 2: Enviando GET para #{endpoint}..."
+    make_api_request(endpoint, params, 'Failed to exchange token', :get)
   end
 
   def fetch_instagram_user_details(access_token)
