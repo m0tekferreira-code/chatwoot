@@ -43,26 +43,26 @@ module InstagramConcern
     )
 
     unless response.success?
-      # Log detalhado para depuração
       Rails.logger.error "Instagram Code Exchange Failed. Code: #{response.code}, Response: #{response.body}"
       raise "Failed to exchange code: #{response.body}"
     end
 
-    JSON.parse(response.body)
+    data = JSON.parse(response.body)
+    Rails.logger.info "Passo 1 concluído com sucesso. Token recebido."
+    data
   end
 
   def exchange_for_long_lived_token(short_lived_token)
-    # Passo 2: Troca para Longa Duração via Facebook Graph (Padrão Business Login)
-    # Este endpoint é o que a Meta unificou para evitar erros de "Unsupported method"
-    endpoint = "https://graph.facebook.com/v21.0/oauth/access_token"
+    # Passo 2: Troca para Longa Duração via Instagram Graph
+    # Seguindo o manual: GET, graph.instagram.com, sem client_id
+    endpoint = "https://graph.instagram.com/access_token"
     params = {
-      grant_type: 'fb_exchange_token',
-      client_id: client_id,
+      grant_type: 'ig_exchange_token',
       client_secret: client_secret,
-      fb_exchange_token: short_lived_token
+      access_token: short_lived_token
     }
 
-    Rails.logger.info "Iniciando Troca Business (Passo 2) via Facebook: #{endpoint}"
+    Rails.logger.info "Iniciando Passo 2 via Instagram Graph: #{endpoint}"
     make_api_request(endpoint, params, 'Failed to exchange token', :get)
   end
 
