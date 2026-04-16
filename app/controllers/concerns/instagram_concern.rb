@@ -52,15 +52,17 @@ module InstagramConcern
   end
 
   def exchange_for_long_lived_token(short_lived_token)
-    # Passo 2: Trocar curta por longa duração (URL sem v25.0 conforme manual)
-    endpoint = "https://graph.instagram.com/access_token"
+    # Passo 2: Troca para Longa Duração via Facebook Graph (Padrão Business Login)
+    # Este endpoint é o que a Meta unificou para evitar erros de "Unsupported method"
+    endpoint = "https://graph.facebook.com/v21.0/oauth/access_token"
     params = {
-      grant_type: 'ig_exchange_token',
+      grant_type: 'fb_exchange_token',
+      client_id: client_id,
       client_secret: client_secret,
-      access_token: short_lived_token
+      fb_exchange_token: short_lived_token
     }
 
-    Rails.logger.info "Iniciando Passo 2 (Long-lived token) com GET para: #{endpoint}"
+    Rails.logger.info "Iniciando Troca Business (Passo 2) via Facebook: #{endpoint}"
     make_api_request(endpoint, params, 'Failed to exchange token', :get)
   end
 
