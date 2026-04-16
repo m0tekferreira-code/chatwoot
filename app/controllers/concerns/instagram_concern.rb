@@ -26,19 +26,21 @@ module InstagramConcern
   end
 
   def exchange_for_long_lived_token(short_lived_token)
-    # Atualizando para v25.0 conforme especificado
-    endpoint = 'https://graph.instagram.com/v25.0/access_token'
+    # Mudando para o domínio da Meta (Facebook) que é mais estável para troca de tokens
+    endpoint = 'https://graph.facebook.com/v21.0/oauth/access_token'
     params = {
-      grant_type: 'ig_exchange_token',
+      grant_type: 'fb_exchange_token', # Usando fb_exchange_token que é o padrão da Meta
       client_secret: client_secret,
-      access_token: short_lived_token
+      fb_exchange_token: short_lived_token,
+      client_id: client_id
     }
 
     make_api_request(endpoint, params, 'Failed to exchange token', :get)
   end
 
   def fetch_instagram_user_details(access_token)
-    endpoint = 'https://graph.instagram.com/v25.0/me'
+    # Mantendo instagram.com para o "me" pois ainda é o padrão para Basic Display
+    endpoint = 'https://graph.instagram.com/v21.0/me'
     params = {
       fields: 'id,username,user_id,name,profile_picture_url,account_type',
       access_token: access_token
