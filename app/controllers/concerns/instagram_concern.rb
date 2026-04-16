@@ -52,24 +52,27 @@ module InstagramConcern
   end
 
   def exchange_for_long_lived_token(short_lived_token)
-    # Passo 2: Trocar curta por longa duração
-    endpoint = "https://graph.instagram.com/v25.0/access_token"
+    # Passo 2: Trocar curta por longa duração (URL sem v25.0 conforme manual)
+    endpoint = "https://graph.instagram.com/access_token"
     params = {
       grant_type: 'ig_exchange_token',
       client_secret: client_secret,
       access_token: short_lived_token
     }
 
+    Rails.logger.info "Iniciando Passo 2 (Long-lived token) com GET para: #{endpoint}"
     make_api_request(endpoint, params, 'Failed to exchange token', :get)
   end
 
   def fetch_instagram_user_details(access_token)
-    endpoint = 'https://graph.instagram.com/v25.0/me'
+    # Endpoint de detalhes (URL curta sem v25.0)
+    endpoint = 'https://graph.instagram.com/me'
     params = {
       fields: 'id,username,user_id,name,profile_picture_url,account_type',
       access_token: access_token
     }
 
+    Rails.logger.info "Buscando detalhes do usuário no Instagram (Passo 3): #{endpoint}"
     make_api_request(endpoint, params, 'Failed to fetch Instagram user details', :get)
   end
 
