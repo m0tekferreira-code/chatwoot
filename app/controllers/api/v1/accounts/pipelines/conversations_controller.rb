@@ -14,7 +14,7 @@ class Api::V1::Accounts::Pipelines::ConversationsController < Api::V1::Accounts:
   end
 
   def create
-    conversation = Current.account.conversations.find(params[:conversation_id])
+    conversation = Current.account.conversations.find_by(display_id: params[:conversation_id])
     stage = @pipeline.pipeline_stages.find(params[:pipeline_stage_id])
 
     cps = ConversationPipelineStage.find_or_initialize_by(conversation: conversation)
@@ -27,11 +27,11 @@ class Api::V1::Accounts::Pipelines::ConversationsController < Api::V1::Accounts:
     )
     cps.save!
 
-    render json: { conversation_id: conversation.id, pipeline_stage_id: stage.id }, status: :ok
+    render json: { conversation_id: conversation.display_id, pipeline_stage_id: stage.id }, status: :ok
   end
 
   def update
-    conversation = Current.account.conversations.find(params[:id])
+    conversation = Current.account.conversations.find_by(display_id: params[:id])
     cps = ConversationPipelineStage.find_by!(conversation: conversation, pipeline: @pipeline)
 
     new_stage = @pipeline.pipeline_stages.find(params[:pipeline_stage_id])
@@ -42,11 +42,11 @@ class Api::V1::Accounts::Pipelines::ConversationsController < Api::V1::Accounts:
       position: params[:position] || 0
     )
 
-    render json: { conversation_id: conversation.id, pipeline_stage_id: new_stage.id }, status: :ok
+    render json: { conversation_id: conversation.display_id, pipeline_stage_id: new_stage.id }, status: :ok
   end
 
   def destroy
-    conversation = Current.account.conversations.find(params[:id])
+    conversation = Current.account.conversations.find_by(display_id: params[:id])
     cps = ConversationPipelineStage.find_by!(conversation: conversation, pipeline: @pipeline)
     cps.destroy!
 
