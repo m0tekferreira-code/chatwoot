@@ -19,6 +19,11 @@ class Instagram::CallbacksController < ApplicationController
 
   # Process the authorization code and create inbox
   def process_successful_authorization
+    if oauth_code == '500' || oauth_code.blank?
+      Rails.logger.error "Instagram Auth: Recebido código inválido ou erro 500. Reinicie o fluxo."
+      raise "Código de autorização inválido. Por favor, reinicie o processo de conexão no painel."
+    end
+
     # Passo 1: Troca do code por token (Padrão Business Login)
     @response_data = exchange_code_for_token(oauth_code)
     
