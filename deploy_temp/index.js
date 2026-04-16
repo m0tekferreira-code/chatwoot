@@ -2,7 +2,7 @@ const { Client } = require('ssh2');
 
 const conn = new Client();
 conn.on('ready', () => {
-  console.log('Aplicando fix de token POST na VPS...');
+  console.log('Aplicando fix v2 na VPS...');
   
   const commands = [
     'cd /home/chatwoot/chatwoot && git stash && git pull custom develop',
@@ -11,7 +11,7 @@ conn.on('ready', () => {
 
   const executeCommand = (index) => {
     if (index >= commands.length) {
-      console.log('DADOS ATUALIZADOS! TENTE NOVAMENTE O LOGIN DO INSTAGRAM.');
+      console.log('REINICIADO! TENTE NOVAMENTE O LOGIN DO INSTAGRAM.');
       conn.end();
       return;
     }
