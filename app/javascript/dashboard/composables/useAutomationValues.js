@@ -115,6 +115,21 @@ export default function useAutomationValues() {
     });
   };
 
+  const pipelines = useMapGetter('pipelines/getPipelines');
+
+  const pipelineOptions = computed(() => {
+    const allStages = [];
+    pipelines.value.forEach(pipeline => {
+      pipeline.stages.forEach(stage => {
+        allStages.push({
+          id: stage.id,
+          name: `${pipeline.name}: ${stage.title}`,
+        });
+      });
+    });
+    return allStages;
+  });
+
   /**
    * Gets the action dropdown values for a given type.
    * @param {string} type - The type of action.
@@ -126,6 +141,7 @@ export default function useAutomationValues() {
       labels: labels.value,
       teams: teams.value,
       slaPolicies: slaPolicies.value,
+      pipelines: pipelineOptions.value,
       languages,
       type,
       addNoneToListFn: addNoneToList,

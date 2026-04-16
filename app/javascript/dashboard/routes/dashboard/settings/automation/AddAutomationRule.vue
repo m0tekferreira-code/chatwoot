@@ -62,6 +62,7 @@ onMounted(() => {
   store.dispatch('teams/get');
   store.dispatch('labels/get');
   store.dispatch('campaigns/get');
+  store.dispatch('pipelines/get');
 });
 
 defineExpose({ open, close });

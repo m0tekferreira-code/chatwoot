@@ -8,7 +8,7 @@ import PipelineSettings from './PipelineSettings.vue';
 
 const store = useStore();
 const { t } = useI18n();
-const { showAlert } = useAlert();
+const showAlert = useAlert;
 
 const showSettings = ref(false);
 const showAddConversation = ref(false);

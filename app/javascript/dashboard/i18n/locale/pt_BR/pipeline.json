@@ -1,0 +1,43 @@
+{
+  "PIPELINE": {
+    "HEADER": "Pipelines",
+    "BOARD": {
+      "EMPTY": "Nenhum pipeline criado ainda. Crie um para começar a organizar as conversas.",
+      "EMPTY_STAGE": "Nenhuma conversa neste estágio",
+      "MOVE_ERROR": "Falha ao mover a conversa. Por favor, tente novamente.",
+      "ADD_SUCCESS": "Conversa adicionada ao pipeline com sucesso.",
+      "ADD_ERROR": "Falha ao adicionar conversa ao pipeline.",
+      "ADD_CONVERSATION": "Adicionar Conversa",
+      "ADD": "Adicionar",
+      "CONVERSATION_ID_PLACEHOLDER": "ID da Conversa",
+      "LOADING": "Carregando dados do quadro..."
+    },
+    "SETTINGS": {
+      "TITLE": "Configurações do Pipeline",
+      "TAB_PIPELINES": "Pipelines",
+      "TAB_STAGES": "Estágios",
+      "PIPELINE_NAME_PLACEHOLDER": "Nome do pipeline",
+      "PIPELINE_DESC_PLACEHOLDER": "Descrição (opcional)",
+      "CREATE_PIPELINE": "Criar Pipeline",
+      "UPDATE_PIPELINE": "Atualizar Pipeline",
+      "CANCEL": "Cancelar",
+      "CLOSE": "Fechar",
+      "CONVERSATIONS": "conversas",
+      "STAGE_NAME_PLACEHOLDER": "Nome do estágio",
+      "CREATE_STAGE": "Criar Estágio",
+      "UPDATE_STAGE": "Atualizar Estágio",
+      "PIPELINE_CREATED": "Pipeline criado com sucesso.",
+      "PIPELINE_CREATE_ERROR": "Falha ao criar o pipeline.",
+      "PIPELINE_UPDATED": "Pipeline atualizado com sucesso.",
+      "PIPELINE_UPDATE_ERROR": "Falha ao atualizar o pipeline.",
+      "PIPELINE_DELETED": "Pipeline excluído com sucesso.",
+      "PIPELINE_DELETE_ERROR": "Falha ao excluir o pipeline.",
+      "STAGE_CREATED": "Estágio criado com sucesso.",
+      "STAGE_CREATE_ERROR": "Falha ao criar o estágio.",
+      "STAGE_UPDATED": "Estágio atualizado com sucesso.",
+      "STAGE_UPDATE_ERROR": "Falha ao atualizar o estágio.",
+      "STAGE_DELETED": "Estágio excluído com sucesso.",
+      "STAGE_DELETE_ERROR": "Falha ao excluir o estágio."
+    }
+  }
+}

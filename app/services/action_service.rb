@@ -90,6 +90,23 @@ class ActionService
     end
   end
 
+  def move_to_pipeline_stage(params)
+    stage_id = params[0]
+    return if stage_id.blank?
+
+    stage = @account.pipeline_stages.find_by(id: stage_id)
+    return unless stage.present?
+
+    cps = ConversationPipelineStage.find_or_initialize_by(conversation: @conversation)
+    cps.assign_attributes(
+      pipeline: stage.pipeline,
+      pipeline_stage: stage,
+      account: @account,
+      entered_at: Time.current
+    )
+    cps.save!
+  end
+
   private
 
   def agent_belongs_to_inbox?(agent_ids)

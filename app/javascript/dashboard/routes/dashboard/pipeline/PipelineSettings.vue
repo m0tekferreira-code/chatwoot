@@ -15,7 +15,7 @@ const emit = defineEmits(['close', 'saved']);
 
 const store = useStore();
 const { t } = useI18n();
-const { showAlert } = useAlert();
+const showAlert = useAlert;
 
 const activeTab = ref('pipelines');
 const pipelineName = ref('');
