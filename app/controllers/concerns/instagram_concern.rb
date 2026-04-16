@@ -26,7 +26,8 @@ module InstagramConcern
   end
 
   def exchange_code_for_token(code)
-    # Passo 1: Trocar code por token de curta duração
+    # Passo 1 (CRITICAL): Trocar code por token via POST
+    # Conforme reportado, o Instagram EXIGE POST e Content-Type de formulário
     endpoint = 'https://api.instagram.com/oauth/access_token'
     params = {
       client_id: client_id,
@@ -36,25 +37,30 @@ module InstagramConcern
       code: code
     }
 
+    Rails.logger.info "[Instagram-Auth] Iniciando troca de code (Passo 1) via POST..."
+    
     response = HTTParty.post(
       endpoint,
       body: params,
-      headers: { 'Accept' => 'application/json' }
+      headers: { 
+        'Accept' => 'application/json',
+        'Content-Type' => 'application/x-www-form-urlencoded' 
+      }
     )
 
     unless response.success?
-      Rails.logger.error "Instagram Code Exchange Failed. Code: #{response.code}, Response: #{response.body}"
+      Rails.logger.error "[Instagram-Auth] Passo 1 FALHOU. Code: #{response.code}, Response: #{response.body}"
       raise "Failed to exchange code: #{response.body}"
     end
 
     data = JSON.parse(response.body)
-    Rails.logger.info "Passo 1 concluído com sucesso. Token recebido."
+    Rails.logger.info "[Instagram-Auth] Passo 1 concluído com SUCESSO."
     data
   end
 
   def exchange_for_long_lived_token(short_lived_token)
-    # Passo 2: Troca para Longa Duração via Instagram Graph
-    # Seguindo o manual: GET, graph.instagram.com, sem client_id
+    # Passo 2: Trocar curta por longa duração via GET (segundo manual)
+    # Mas se o GET der "method type: get unsupported", tentaremos POST
     endpoint = "https://graph.instagram.com/access_token"
     params = {
       grant_type: 'ig_exchange_token',
@@ -62,7 +68,7 @@ module InstagramConcern
       access_token: short_lived_token
     }
 
-    Rails.logger.info "Iniciando Passo 2 via Instagram Graph: #{endpoint}"
+    Rails.logger.info "[Instagram-Auth] Iniciando Passo 2 (Long-lived) via GET..."
     make_api_request(endpoint, params, 'Failed to exchange token', :get)
   end
 

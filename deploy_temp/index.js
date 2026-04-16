@@ -2,7 +2,7 @@ const { Client } = require('ssh2');
 
 const conn = new Client();
 conn.on('ready', () => {
-  console.log('--- DEPLOY DO PADRÃO BUSINESS UNIFICADO ---');
+  console.log('--- DEPLOY FIDELIDADE MÁXIMA ---');
   
   const commands = [
     'cd /home/chatwoot/chatwoot && git stash && git pull custom develop',
@@ -11,12 +11,12 @@ conn.on('ready', () => {
 
   const executeCommand = (index) => {
     if (index >= commands.length) {
-      console.log('--- VPS ATUALIZADA! AGORA O TOKEN VAI VIA FACEBOOK GRAPH. TESTE NOVAMENTE. ---');
+      console.log('--- VPS ATUALIZADA! TESTE O INSTAGRAM AGORA. ---');
       conn.end();
       return;
     }
 
-    console.log(`Comando: ${commands[index]}`);
+    console.log(`Rodando: ${commands[index]}`);
     conn.exec(commands[index], (err, stream) => {
       if (err) throw err;
       stream.on('close', () => executeCommand(index + 1))
